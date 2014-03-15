@@ -19,6 +19,12 @@ config = [{
                     'default': False,
                 },
                 {
+                    'name': 'lang',
+                    'label': 'Language',
+                    'default': 'VF,VFQ',
+                    'description': 'Choose to search only VF, VFQ or both.',
+                },
+                {
                     'name': 'extra_score',
                     'advanced': True,
                     'label': 'Extra Score',
