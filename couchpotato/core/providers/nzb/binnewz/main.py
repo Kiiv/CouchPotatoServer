@@ -49,7 +49,7 @@ class BinNewz(NZBProvider):
         MovieTitles = movie['library']['info']['titles']
         moviequality = simplifyString(quality['identifier'])
         movieyear = movie['library']['year']
-        if moviequality in ("720p","1080p","bd50"):
+        if moviequality in ("720p","1080p","bd50","brrip"):
             cat1='39'
             cat2='49'
             minSize = 2000
@@ -61,18 +61,36 @@ class BinNewz(NZBProvider):
             cat1='6'
             cat2='27'
             minSize = 500
-            
+
+        # Choose language search preference
+        langSettings = splitString(self.conf('lang'), clean = False)
+        langQuery = ""
+        if "VF" in langSettings or "vf" in langSettings:
+            log.info("VF detected")
+            langQuery = "2,6"
+
+        if "VFQ" in langSettings or "vfq" in langSettings:
+            log.info("VFQ detected")
+            if langQuery:
+                langQuery = langQuery + ","
+            langQuery = langQuery + "5,8,9,10"
+
         for MovieTitle in MovieTitles:
             TitleStringReal = str(MovieTitle.encode("utf-8").replace('-',' '))
-            data = 'chkInit=1&edTitre='+TitleStringReal+'&chkTitre=on&chkFichier=on&chkCat=on&cats%5B%5D='+cat1+'&cats%5B%5D='+cat2+'&edAge=&edYear='
+            data = {'chkInit': '1', 'edTitre': TitleStringReal, 'chkTitre': 'on', 'chkFichier': 'on', 'chkCat': 'on',
+                    'cats[]': [cat1, cat2], 'lg[]': splitString(langQuery, clean = False), 'edAge': '', 'edYear': ''}
             try:
-                soup = BeautifulSoup( urllib2.urlopen(self.urls['search'], data) )
+                soup = BeautifulSoup( urllib2.urlopen(self.urls['search'], urllib.urlencode(data, True)))
             except Exception, e:
                 log.error(u"Error trying to load BinNewz response: "+e)
                 return []
     
             tables = soup.findAll("table", id="tabliste")
-            for table in tables:
+            if len(tables) == 0:
+                log.info("No result")
+            else:
+                log.info("Results found in " + str(len(tables))  + " categories")
+             for table in tables:
     
                 rows = table.findAll("tr")
                 for row in rows:
@@ -85,10 +103,11 @@ class BinNewz(NZBProvider):
                     testname=namer_check.correctName(name,movie)
                     if testname==0:
                         continue
-                    language = cells[3].find("img").get("src")
-    
-                    if not "_fr" in language and not "_frq" in language:
-                        continue
+
+                    # Old way to choose language
+                    #language = cells[3].find("img").get("src")
+                    #if not "_fr" in language and not "_frq" in language:
+                    #    continue
                                                     
       
                     # blacklist_groups = [ "alt.binaries.multimedia" ]
