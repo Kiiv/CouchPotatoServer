@@ -90,7 +90,7 @@ class BinNewz(NZBProvider):
                 log.info("No result")
             else:
                 log.info("Results found in " + str(len(tables))  + " categories")
-             for table in tables:
+            for table in tables:
     
                 rows = table.findAll("tr")
                 for row in rows:
