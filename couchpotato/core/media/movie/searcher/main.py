@@ -280,7 +280,7 @@ class MovieSearcher(SearcherBase, MovieTypeBase):
         now = int(time.time())
         now_year = date.today().year
 
-        if (year is None or year < now_year - 1) and (not dates or (dates.get('theater', 0) == 0 and dates.get('dvd', 0) == 0)):
+        if (not dates or (dates.get('theater', 0) == 0 and dates.get('dvd', 0) == 0)):
             return True
         else:
 
