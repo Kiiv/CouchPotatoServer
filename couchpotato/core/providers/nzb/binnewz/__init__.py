@@ -19,10 +19,18 @@ config = [{
                     'default': False,
                 },
                 {
-                    'name': 'lang',
-                    'label': 'Language',
-                    'default': 'VF,VFQ',
-                    'description': 'Choose to search only VF, VFQ or both.',
+                    'name': 'lang_french',
+                    'label': 'Search for VF',
+                    'type': 'bool',
+                    'default': 1,
+                    'description': 'Search movies in true french audio',
+                },
+                {
+                    'name': 'lang_quebec',
+                    'label': 'Search for VFQ',
+                    'type': 'bool',
+                    'default': 1,
+                    'description': 'Search movies in quebec french audio',
                 },
                 {
                     'name': 'extra_score',
