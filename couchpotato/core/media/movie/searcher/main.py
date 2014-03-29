@@ -280,32 +280,28 @@ class MovieSearcher(SearcherBase, MovieTypeBase):
         now = int(time.time())
         now_year = date.today().year
 
-        if (not dates or (dates.get('theater', 0) == 0 and dates.get('dvd', 0) == 0)):
+        # For movies before 1972 or movies without eta information
+        if not dates or dates.get('theater', 0) <= 0 or dates.get('dvd', 0) <= 0:
             return True
-        else:
 
-            # For movies before 1972
-            if not dates or dates.get('theater', 0) < 0 or dates.get('dvd', 0) < 0:
+        if is_pre_release:
+            # Prerelease 1 week before theaters
+            if dates.get('theater') - 604800 < now:
+                return True
+        else:
+            # 12 weeks after theater release
+            if dates.get('theater') > 0 and dates.get('theater') + 7257600 < now:
                 return True
 
-            if is_pre_release:
-                # Prerelease 1 week before theaters
-                if dates.get('theater') - 604800 < now:
-                    return True
-            else:
-                # 12 weeks after theater release
-                if dates.get('theater') > 0 and dates.get('theater') + 7257600 < now:
+            if dates.get('dvd') > 0:
+
+                # 4 weeks before dvd release
+                if dates.get('dvd') - 2419200 < now:
                     return True
 
-                if dates.get('dvd') > 0:
-
-                    # 4 weeks before dvd release
-                    if dates.get('dvd') - 2419200 < now:
-                        return True
-
-                    # Dvd should be released
-                    if dates.get('dvd') < now:
-                        return True
+                # Dvd should be released
+                if dates.get('dvd') < now:
+                    return True
 
 
         return False
