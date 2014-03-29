@@ -63,13 +63,12 @@ class BinNewz(NZBProvider):
             minSize = 500
 
         # Choose language search preference
-        langSettings = splitString(self.conf('lang'), clean = False)
         langQuery = ""
-        if "VF" in langSettings or "vf" in langSettings:
+        if self.conf('lang_french'):
             log.info("VF detected")
             langQuery = "2,6"
 
-        if "VFQ" in langSettings or "vfq" in langSettings:
+        if self.conf('lang_quebec'):
             log.info("VFQ detected")
             if langQuery:
                 langQuery = langQuery + ","
