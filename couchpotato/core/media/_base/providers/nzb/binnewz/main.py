@@ -95,7 +95,7 @@ class Base(NZBProvider):
                         continue
 
                     # Old way to choose language
-                    #language = cells[3].find("img").get("src")
+                    language = cells[3].find("img").get("src")
                     #if not "_fr" in language and not "_frq" in language:
                     #    continue
                     
