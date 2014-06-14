@@ -295,6 +295,7 @@ class MovieSearcher(SearcherBase, MovieTypeBase):
 
         now = int(time.time())
         now_year = date.today().year
+        now_month = date.today().month
 
         # For movies before 1972 or movies without eta information
         if not dates or dates.get('theater', 0) <= 0 or dates.get('dvd', 0) <= 0:
