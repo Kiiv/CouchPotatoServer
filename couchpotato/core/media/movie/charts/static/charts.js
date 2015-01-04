@@ -2,6 +2,8 @@ var Charts = new Class({
 
 	Implements: [Options, Events],
 
+	shown_once: false,
+
 	initialize: function(options){
 		var self = this;
 		self.setOptions(options);
@@ -22,9 +24,11 @@ var Charts = new Class({
 					'events': {
 						'click': function(e) {
 							e.preventDefault();
-							self.el.getChildren('div.chart').destroy();
+
+							self.el.getElements('.chart').destroy();
 							self.el_refreshing_text.show();
 							self.el_refresh_link.hide();
+
 							self.api_request = Api.request('charts.view', {
 								'data': { 'force_update': 1 },
 								'onComplete': self.fill.bind(self)
@@ -38,16 +42,12 @@ var Charts = new Class({
 			)
 		);
 
-		if( Cookie.read('suggestions_charts_menu_selected') === 'charts')
-			self.el.show();
+		if( Cookie.read('suggestions_charts_menu_selected') === 'charts'){
+			self.show();
+			self.fireEvent.delay(0, self, 'created');
+		}
 		else
 			self.el.hide();
-
-		self.api_request = Api.request('charts.view', {
-			'onComplete': self.fill.bind(self)
-		});
-
-		self.fireEvent.delay(0, self, 'created');
 
 	},
 
@@ -72,7 +72,7 @@ var Charts = new Class({
 
 			Object.each(json.charts, function(chart){
 
-				var c = new Element('div.chart').grab(
+				var c = new Element('div.chart.tiny_scroll').grab(
 					new Element('h3').grab( new Element('a', {
 						'text': chart.name,
 						'href': chart.url
@@ -153,6 +153,24 @@ var Charts = new Class({
 
 		self.fireEvent('loaded');
 
+	},
+
+	show: function(){
+		var self = this;
+
+		self.el.show();
+
+		if(!self.shown_once){
+			self.api_request = Api.request('charts.view', {
+				'onComplete': self.fill.bind(self)
+			});
+
+			self.shown_once = true;
+		}
+	},
+
+	hide: function(){
+		this.el.hide();
 	},
 
 	afterAdded: function(m){
