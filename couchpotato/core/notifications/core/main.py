@@ -3,6 +3,7 @@ import threading
 import time
 import traceback
 import uuid
+from CodernityDB.database import RecordDeleted
 
 from couchpotato import get_db
 from couchpotato.api import addApiView, addNonBlockApiView
@@ -28,6 +29,7 @@ class CoreNotifier(Notification):
     m_lock = None
 
     listen_to = [
+        'media.available',
         'renamer.after', 'movie.snatched',
         'updater.available', 'updater.updated',
         'core.message', 'core.message.important',
@@ -65,7 +67,9 @@ class CoreNotifier(Notification):
         fireEvent('schedule.interval', 'core.clean_messages', self.cleanMessages, seconds = 15, single = True)
 
         addEvent('app.load', self.clean)
-        addEvent('app.load', self.checkMessages)
+
+        if not Env.get('dev'):
+            addEvent('app.load', self.checkMessages)
 
         self.messages = []
         self.listeners = []
@@ -106,11 +110,11 @@ class CoreNotifier(Notification):
 
         if limit_offset:
             splt = splitString(limit_offset)
-            limit = splt[0]
-            offset = 0 if len(splt) is 1 else splt[1]
-            results = db.get_many('notification', limit = limit, offset = offset, with_doc = True)
+            limit = tryInt(splt[0])
+            offset = tryInt(0 if len(splt) is 1 else splt[1])
+            results = db.all('notification', limit = limit, offset = offset, with_doc = True)
         else:
-            results = db.get_many('notification', limit = 200, with_doc = True)
+            results = db.all('notification', limit = 200, with_doc = True)
 
         notifications = []
         for n in results:
@@ -152,9 +156,14 @@ class CoreNotifier(Notification):
             n = {
                 '_t': 'notification',
                 'time': int(time.time()),
-                'message': toUnicode(message),
-                'data': data
+                'message': toUnicode(message)
             }
+
+            if data.get('sticky'):
+                n['sticky'] = True
+            if data.get('important'):
+                n['important'] = True
+
             db.insert(n)
 
             self.frontend(type = listener, data = n)
@@ -262,11 +271,16 @@ class CoreNotifier(Notification):
         if init:
             db = get_db()
 
-            notifications = db.all('notification', with_doc = True)
+            notifications = db.all('notification')
 
             for n in notifications:
-                if n['doc'].get('time') > (time.time() - 604800):
-                    messages.append(n['doc'])
+
+                try:
+                    doc = db.get('id', n.get('_id'))
+                    if doc.get('time') > (time.time() - 604800):
+                        messages.append(doc)
+                except RecordDeleted:
+                    pass
 
         return {
             'success': True,

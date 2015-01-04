@@ -19,7 +19,7 @@ from couchpotato.core.event import fireEvent
 
 log = CPLog(__name__)
 
-clean = '[ _\,\.\(\)\[\]\-](extended.cut|directors.cut|french|swedisch|danish|dutch|swesub|spanish|german|ac3|dts|custom|dc|divx|divx5|dsr|dsrip|dutch|dvd|dvdr|dvdrip|dvdscr|dvdscreener|screener|dvdivx|cam|fragment|fs|hdtv|hdrip|hdtvrip|internal|limited|multisubs|ntsc|ogg|ogm|pal|pdtv|proper|repack|rerip|retail|r3|r5|bd5|se|svcd|swedish|german|read.nfo|nfofix|unrated|ws|telesync|ts|telecine|tc|brrip|bdrip|video_ts|audio_ts|480p|480i|576p|576i|720p|720i|1080p|1080i|hrhd|hrhdtv|hddvd|bluray|x264|h264|xvid|xvidvd|xxx|www.www|cd[1-9]|\[.*\])([ _\,\.\(\)\[\]\-]|$)'
+clean = '[ _\,\.\(\)\[\]\-](extended.cut|directors.cut|french|by|ioaw|swedisch|danish|dutch|swesub|spanish|german|ac3|dts|custom|dc|divx|divx5|dsr|dsrip|dutch|dvd|dvdr|dvdrip|dvdscr|dvdscreener|screener|dvdivx|cam|fragment|fs|hdtv|hdrip|hdtvrip|internal|limited|multisubs|ntsc|ogg|ogm|pal|pdtv|proper|repack|rerip|retail|r3|r5|bd5|se|svcd|swedish|german|read.nfo|nfofix|unrated|ws|telesync|ts|telecine|tc|brrip|bdrip|video_ts|audio_ts|480p|480i|576p|576i|720p|720i|1080p|1080i|hrhd|hrhdtv|hddvd|full|multi|bluray|x264|h264|xvid|xvidvd|xxx|www.www|cd[1-9]|\[.*\])([ _\,\.\(\)\[\]\-]|$)'
 multipart_regex = [
         '[ _\.-]+cd[ _\.-]*([0-9a-d]+)', #*cd1
         '[ _\.-]+dvd[ _\.-]*([0-9a-d]+)', #*dvd1
@@ -54,8 +54,9 @@ def correctName(check_name, movie):
                 try:
                     check_words = filter(None, re.split('\W+', simplifyString(check_movie.get('name', ''))))
                     movie_words = filter(None, re.split('\W+', simplifyString(movietitle)))
-                    if len(check_words) > 0 and len(movie_words) > 0 and len(list(set(check_words) - set(movie_words))) == 0:
+                    if len(check_words) > 0 and len(movie_words) > 0 and len(list(set(check_words) - set(movie_words))) == 0 and len(list(set(movie_words) - set(check_words))) == 0:
                         result+=1
+                        return result
                 except:
                     pass
     

@@ -2,7 +2,7 @@ import base64
 import time
 
 from couchpotato.core.event import addEvent, fireEvent
-from couchpotato.core.helpers.encoding import tryUrlencode
+from couchpotato.core.helpers.encoding import tryUrlencode, ss
 from couchpotato.core.logger import CPLog
 from couchpotato.core.media.movie.providers.base import MovieProvider
 from couchpotato.environment import Env
@@ -58,27 +58,25 @@ class CouchPotatoApi(MovieProvider):
         }), headers = self.getRequestHeaders())
 
     def search(self, q, limit = 5):
-        results=self.getJsonData(self.urls['search'] % tryUrlencode(q) + ('?limit=%s' % limit), headers = self.getRequestHeaders())
-        x=0
-        for result in results:
-            results[x]['titles']=[results[x]['original_title']]
-            x+=1
-        return results
+        return self.getJsonData(self.urls['search'] % tryUrlencode(q) + ('?limit=%s' % limit), headers = self.getRequestHeaders())
 
     def validate(self, name = None):
 
         if not name:
             return
 
-        name_enc = base64.b64encode(name)
+        name_enc = base64.b64encode(ss(name))
         return self.getJsonData(self.urls['validate'] % name_enc, headers = self.getRequestHeaders())
 
-    def isMovie(self, identifier = None):
+    def isMovie(self, identifier = None, adding = False):
 
         if not identifier:
             return
 
-        data = self.getJsonData(self.urls['is_movie'] % identifier, headers = self.getRequestHeaders())
+        url = self.urls['is_movie'] % identifier
+        url += '?adding=1' if adding else ''
+
+        data = self.getJsonData(url, headers = self.getRequestHeaders())
         if data:
             return data.get('is_movie', True)
 
@@ -112,17 +110,7 @@ class CouchPotatoApi(MovieProvider):
             'ignore': ','.join(ignore),
         }, headers = self.getRequestHeaders())
         log.info('Found suggestions for %s movies, %s ignored', (len(movies), len(ignore)))
-        x=0
-        for item in suggestions:
-            movie = tmdb3.Movie(item['imdb'])
-            try:
-                suggestions[x]['plot']=movie.overview
-                suggestions[x]['titles'][0]=movie.title
-                suggestions[x]['images']['poster'][0]=suggestions[x]['images']['poster_original'][0][:suggestions[x]['images']['poster_original'][0].rfind('/')+1]+movie.posters[0].filename
-            except:
-                x+=1
-                continue
-            x+=1
+
         return suggestions
 
     def getRequestHeaders(self):

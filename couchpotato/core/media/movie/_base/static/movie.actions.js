@@ -115,8 +115,15 @@ MA.Release = new Class({
 
 			self.releases = null;
 			if(self.options_container){
-				self.options_container.destroy();
-				self.options_container = null;
+				// Releases are currently displayed
+				if(self.options_container.isDisplayed()){
+					self.options_container.destroy();
+					self.createReleases();
+				}
+				else {
+					self.options_container.destroy();
+					self.options_container = null;
+				}
 			}
 		});
 
@@ -131,10 +138,10 @@ MA.Release = new Class({
 
 	},
 
-	createReleases: function(){
+	createReleases: function(refresh){
 		var self = this;
 
-		if(!self.options_container){
+		if(!self.options_container || refresh){
 			self.options_container = new Element('div.options').grab(
 				self.release_container = new Element('div.releases.table')
 			);
@@ -302,7 +309,7 @@ MA.Release = new Class({
 			self.movie.data.releases.each(function(release){
 				if(has_available && has_snatched) return;
 
-				if(['snatched', 'downloaded', 'seeding'].contains(release.status))
+				if(['snatched', 'downloaded', 'seeding', 'done'].contains(release.status))
 					has_snatched = true;
 
 				if(['available'].contains(release.status))
@@ -689,7 +696,7 @@ MA.Readd = new Class({
 
 		if(movie_done || snatched && snatched > 0)
 			self.el = new Element('a.readd', {
-				'title': 'Readd the movie and mark all previous snatched/downloaded as ignored',
+				'title': 'Re-add the movie and mark all previous snatched/downloaded as ignored',
 				'events': {
 					'click': self.doReadd.bind(self)
 				}

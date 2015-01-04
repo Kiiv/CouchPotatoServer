@@ -1,4 +1,3 @@
-from couchpotato import get_db
 from couchpotato.api import addApiView
 from couchpotato.core.event import fireEvent
 from couchpotato.core.helpers.variable import splitString, removeDuplicate, getIdentifier
@@ -28,7 +27,7 @@ class Suggestion(Plugin):
         else:
 
             if not movies or len(movies) == 0:
-                active_movies = fireEvent('media.with_status', ['active', 'done'], single = True)
+                active_movies = fireEvent('media.with_status', ['active', 'done'], types = 'movie', single = True)
                 movies = [getIdentifier(x) for x in active_movies]
 
             if not ignored or len(ignored) == 0:
@@ -84,7 +83,6 @@ class Suggestion(Plugin):
 
         # Get new results and add them
         if len(new_suggestions) - 1 < limit:
-            db = get_db()
             active_movies = fireEvent('media.with_status', ['active', 'done'], single = True)
             movies = [getIdentifier(x) for x in active_movies]
             movies.extend(seen)

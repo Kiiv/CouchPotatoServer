@@ -83,13 +83,19 @@ def addNonBlockApiView(route, func_tuple, docs = None, **kwargs):
 
 # Blocking API handler
 class ApiHandler(RequestHandler):
+    route = None
 
     @asynchronous
     def get(self, route, *args, **kwargs):
-        route = route.strip('/')
+        self.route = route = route.strip('/')
         if not api.get(route):
             self.write('API call doesn\'t seem to exist')
+            self.finish()
             return
+
+        # Create lock if it doesn't exist
+        if route in api_locks and not api_locks.get(route):
+            api_locks[route] = threading.Lock()
 
         api_locks[route].acquire()
 
@@ -118,7 +124,7 @@ class ApiHandler(RequestHandler):
             except:
                 log.error('Failed write error "%s": %s', (route, traceback.format_exc()))
 
-            api_locks[route].release()
+            self.unlock()
 
     post = get
 
@@ -138,12 +144,18 @@ class ApiHandler(RequestHandler):
                 else:
                     self.write(result)
                     self.finish()
+            except UnicodeDecodeError:
+                log.error('Failed proper encode: %s', traceback.format_exc())
             except:
                 log.debug('Failed doing request, probably already closed: %s', (traceback.format_exc()))
                 try: self.finish({'success': False, 'error': 'Failed returning results'})
                 except: pass
 
-        api_locks[route].release()
+        self.unlock()
+
+    def unlock(self):
+        try: api_locks[self.route].release()
+        except: pass
 
 
 def addApiView(route, func, static = False, docs = None, **kwargs):
